@@ -3,6 +3,7 @@ import json
 from django.http import HttpResponse
 from django.shortcuts import render
 from rest_framework.decorators import api_view
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -78,7 +79,39 @@ class BookDetailApiView(APIView):
 
         except:
             data = {
-                    'status': f'{status.HTTP_404_NOT_FOUND}',
+                'status': f'{status.HTTP_404_NOT_FOUND}',
 
-                }
+            }
             return Response(data)
+
+
+class DeleteApiView(APIView):
+    def delete(self, request, pk):
+        try:
+            book = Book.objects.get(id=pk)
+            book.delete()
+            return Response({
+                'status': True,
+                'message': 'Book deleted successfully'
+            }, status=status.HTTP_200_OK)
+        except Exception:
+            return Response(
+                {
+                    'status': False,
+                    'message': 'Book not found'
+
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class BookUpdateApiView(APIView):
+    def put(self, request, pk):
+        book = get_object_or_404(Book.objects.all(), id=pk)
+        data = request.data
+        serializer = BookSerializer(instance=book, data=data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            book_saved = serializer.save()
+        return Response({
+                'status': True,
+                'message': f"Book {book_saved} updated successfully"
+            })

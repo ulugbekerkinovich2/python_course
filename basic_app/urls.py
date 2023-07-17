@@ -1,11 +1,17 @@
 from django.urls import path
+from rest_framework.routers import SimpleRouter
 
-from basic_app import views
+from basic_app import views, views2
+from basic_app.views import BookViewSet
+
+router = SimpleRouter()
+router.register('books', BookViewSet, basename='book')
 
 urlpatterns = [
-    path('', views.BookCreateApiView.as_view(), name='index'),
-    path('books/', views.BookListApi.as_view(), name='book-list'),
-    # path('books/<int:pk>', views.DeleteApiView.as_view(), name='book-detail'),
-    path('books/<int:pk>', views.BookDetailApiView.as_view()),
-    path('books/<int:pk>/put', views.BookUpdateApiView.as_view(), name='book-update')
+    # path('post/', views2.Post.as_view(), name='index'),
+    # path('get/', views2.List.as_view(), name='book-list'),
+    # path('del/<int:pk>', views2.Del.as_view(), name='book-detail'),
+    # path('put/<int:pk>', views2.Put.as_view()),
+    # path('get/<int:pk>', views2.ListID.as_view())
 ]
+urlpatterns = urlpatterns + router.urls

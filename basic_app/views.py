@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 
 from .models import Book
 from .serializers import BookSerializer, BookDetailApiSerializer
-from rest_framework import generics, status
+from rest_framework import generics, status, mixins, viewsets
 
 
 # Create your views here.
@@ -43,7 +43,7 @@ class BookListApi(APIView):
         books = Book.objects.all()
         serializer = BookSerializer(books, many=True)
         data = {
-            'status': f'{len(serializer.data)}',
+            # 'status': f'{len(serializer.data)}',
             'books': serializer.data
         }
         return Response(data)
@@ -106,12 +106,33 @@ class DeleteApiView(APIView):
 
 class BookUpdateApiView(APIView):
     def put(self, request, pk):
-        book = get_object_or_404(Book.objects.all(), id=pk)
         data = request.data
-        serializer = BookSerializer(instance=book, data=data, partial=True)
+        book = get_object_or_404(Book, id=pk)
+        serializer = BookSerializer(book, data=data)
         if serializer.is_valid(raise_exception=True):
-            book_saved = serializer.save()
-        return Response({
-                'status': True,
-                'message': f"Book {book_saved} updated successfully"
-            })
+            serializer.save()
+        return Response(serializer.data)
+
+
+class BookViewSet(viewsets.ModelViewSet):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+
+    def get_queryset(self):
+        return Book.objects.filter(id__gte=60)
+    # def destroy(self, request, *args, **kwargs):
+    #     instance = self.get_object()
+    #     self.perform_destroy(instance)
+    #     return Response({'message': 'deleted ok'})
+    #
+    # def update(self, request, *args, **kwargs):
+    #     partial = kwargs.pop('partial', False)
+    #     instance = self.get_object()
+    #     serializer = self.get_serializer(instance, data=request.data, partial=partial)
+    #     serializer.is_valid(raise_exception=True)
+    #     self.perform_update(serializer)
+    #     return Response(serializer.data)
+    #
+    # def partial_update(self, request, *args, **kwargs):
+    #     kwargs['partial'] = True
+    #     return self.update(request, *args, **kwargs)
